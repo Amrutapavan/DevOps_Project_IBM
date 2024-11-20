@@ -1,11 +1,15 @@
-from flask import Flask, jsonify, request, abort
-from app import app
-from app.models import Account
+from flask import jsonify, request, abort
+from . import app
 
 accounts_db = {}
 
+@app.route("/", methods=["GET"])
+def index():
+    return jsonify({"message": "Welcome to the Account Service!"}), 200
+
 @app.route("/accounts", methods=["POST"])
 def create_account():
+    from .models import Account  # Deferred import to avoid circular import
     if not request.json or 'name' not in request.json or 'email' not in request.json:
         abort(400)
     account_id = len(accounts_db) + 1
@@ -21,10 +25,12 @@ def create_account():
 
 @app.route("/accounts", methods=["GET"])
 def get_all_accounts():
+    from .models import Account  # Deferred import to avoid circular import
     return jsonify([account.serialize() for account in accounts_db.values()]), 200
 
 @app.route("/accounts/<int:account_id>", methods=["GET"])
 def get_account(account_id):
+    from .models import Account  # Deferred import to avoid circular import
     account = accounts_db.get(account_id)
     if account is None:
         abort(404)
@@ -32,6 +38,7 @@ def get_account(account_id):
 
 @app.route("/accounts/<int:account_id>", methods=["PUT"])
 def update_account(account_id):
+    from .models import Account  # Deferred import to avoid circular import
     if not request.json:
         abort(400)
     account = accounts_db.get(account_id)
@@ -45,6 +52,7 @@ def update_account(account_id):
 
 @app.route("/accounts/<int:account_id>", methods=["DELETE"])
 def delete_account(account_id):
+    from .models import Account  # Deferred import to avoid circular import
     account = accounts_db.pop(account_id, None)
     if account is None:
         abort(404)
